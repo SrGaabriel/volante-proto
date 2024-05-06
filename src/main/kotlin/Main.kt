@@ -1,3 +1,4 @@
+import html.readFbrefDocument
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
@@ -7,7 +8,11 @@ import io.ktor.http.*
 import it.skrape.core.htmlDocument
 import it.skrape.fetcher.*
 import it.skrape.selects.html5.table
+import it.skrape.selects.html5.td
 import it.skrape.selects.html5.tr
+import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
+import org.jetbrains.kotlinx.dataframe.io.toCsv
+import org.jetbrains.kotlinx.dataframe.io.writeCSV
 import java.io.File
 
 suspend fun main() {
@@ -36,14 +41,27 @@ suspend fun fetchScrapedData(): String {
 }
 
 suspend fun parseScrapedData(data: String) {
-    return htmlDocument(data) {
-        val rows = table(".stats_table") {
-            findSecond {
-                tr {
-                    findAll{this}
+    val dataframe = readFbrefDocument(data) {
+        selectStatsTable(index = 0) {
+            val columns = mapRow(index = 1) {
+                mapCells {
+                    it.text
                 }
             }
+            val values = mapRows(from = 2) {
+                val indicator = readIndicator()
+                val cells = mapCells {
+                    it.text
+                }
+                indicator + cells
+            }
+            println(columns)
+            dataFrameOf(
+                columns,
+                values
+            )
         }
-        print(rows)
     }
+    dataframe.writeCSV(File("/assets/data.csv"))
 }
+
