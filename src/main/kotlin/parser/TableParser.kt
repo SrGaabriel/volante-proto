@@ -1,7 +1,7 @@
 package parser
 
-import org.jetbrains.kotlinx.dataframe.api.DataFrameBuilder
+import org.jetbrains.kotlinx.dataframe.DataFrame
 
 interface TableParser {
-    fun parse(page: String): DataFrameBuilder
+    fun parse(page: String): DataFrame<*>
 }
