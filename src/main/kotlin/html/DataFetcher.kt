@@ -10,6 +10,7 @@ import java.io.File
 
 object DataFetcher {
     suspend fun fetchData(url: String): String {
+        println(url)
         val cache = loadCache(url)
         if (cache != null) return cache
         val client = HttpClient(CIO)
@@ -21,7 +22,7 @@ object DataFetcher {
         return fixed
     }
 
-    suspend fun fixData(data: String): String {
+    fun fixData(data: String): String {
         val regex = Regex("<!--(.*?)-->", setOf(RegexOption.DOT_MATCHES_ALL))
         val matches = regex.findAll(data)
         var fixedData = data
@@ -36,15 +37,14 @@ object DataFetcher {
     }
 
     fun loadCache(url: String): String? {
-        val cacheDir = getHomeDir().resolve("cache")
+        val cacheDir = getCacheDir()
         val file = cacheDir.resolve(url.hashCode().toString() + ".html")
         if (!file.exists()) return null
         return file.readText()
     }
 
     fun saveCache(url: String, data: String) {
-        val cacheDir = getHomeDir().resolve("cache")
-        cacheDir.mkdirs()
+        val cacheDir = getCacheDir()
         val file = cacheDir.resolve(url.hashCode().toString() + ".html")
         file.writeText(data)
         file.createNewFile()
@@ -52,7 +52,15 @@ object DataFetcher {
 
     fun getHomeDir(): File {
         val userHome = System.getProperty("user.home")
-        val cacheDir = File("$userHome/volante")
+        val homeDir = File("$userHome/volante")
+        homeDir.mkdirs()
+        return homeDir
+    }
+
+    fun getCacheDir(): File {
+        val homeDir = getHomeDir()
+        val date = java.time.LocalDate.now()
+        val cacheDir = homeDir.resolve("cache").resolve(date.toString())
         cacheDir.mkdirs()
         return cacheDir
     }

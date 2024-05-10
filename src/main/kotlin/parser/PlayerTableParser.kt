@@ -5,10 +5,10 @@ import it.skrape.selects.html5.a
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
 
-object PlayerTableParser: TableParser {
-    override fun parse(page: String): DataFrame<*> = readFbrefDocument(page) {
-        selectStatsTable(index = 2) {
-            val columns = readAndJoinHeaders(2) + "Id"
+object PlayerTableParser {
+    fun parse(page: String, index: Int = 2): DataFrame<*> = readFbrefDocument(page) {
+        selectStatsTable(index) {
+            val columns = listOf("Id") + readAndJoinHeaders()
             val values = flatMapRows(from = 2) {
                 var id: String? = null
                 val indicator = readIndicator()
@@ -24,7 +24,7 @@ object PlayerTableParser: TableParser {
                     }
                     it.text
                 }
-                listOf(indicator) + cells + (id ?: error("Error"))
+                listOf(id ?: error("Id not found for $indicator")) + indicator + cells
             }
 
             dataFrameOf(
